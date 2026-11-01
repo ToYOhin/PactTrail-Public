@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pacttrail"
+version = "0.1.0"
+description = "Local serial agent with source references, durable history, and reviewed drafts."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+license-files = [
+  "LICENSE",
+  "NOTICE",
+  "THIRD_PARTY_NOTICES.md",
+  "licenses/LightAgent-LICENSE",
+  "licenses/DeepSeek-tokenizer-LICENSE",
+  "licenses/tokenizers-LICENSE",
+  "licenses/loguru-LICENSE",
+]
+authors = [
+  { name = "PactTrail contributors" },
+]
+dependencies = [
+  "LightAgent==0.10.0",
+  "tokenizers==0.23.2",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/ToYOhin/PactTrail-Public"
+Issues = "https://github.com/ToYOhin/PactTrail-Public/issues"
+
+[project.scripts]
+pacttrail = "pacttrail.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"pacttrail.platform" = [
+  "deepseek_tokenizer/tokenizer.json",
+  "deepseek_tokenizer/tokenizer_config.json",
+  "evidence_samples/overview.txt",
+  "evidence_samples/controls.txt",
+  "evidence_samples/recovery.txt",
+  "report_ui/index.html",
+  "report_ui/app.js",
+  "report_ui/style.css",
+  "chat_ui/index.html",
+  "chat_ui/app.js",
+  "chat_ui/composer.js",
+  "chat_ui/history_reference.js",
+  "chat_ui/message_format.js",
+  "chat_ui/send_preview.js",
+  "chat_ui/model_connection.js",
+  "chat_ui/task.js",
+  "chat_ui/task_history.js",
+  "chat_ui/followup.js",
+  "chat_ui/selection.js",
+  "chat_ui/web.js",
+  "chat_ui/web_search.js",
+  "chat_ui/draft.js",
+  "chat_ui/review.js",
+  "chat_ui/conversation.js",
+  "chat_ui/conversation_archive.js",
+  "chat_ui/saved_input.js",
+  "chat_ui/continuation.js",
+  "chat_ui/artifact_reference.js",
+  "chat_ui/artifact_versions.js",
+  "chat_ui/source_citations.js",
+  "chat_ui/verification.js",
+  "chat_ui/style.css",
+]

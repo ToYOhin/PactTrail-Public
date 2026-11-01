@@ -1,0 +1,3 @@
+Synthetic evidence sample: project overview.
+The approval checkpoint pauses the synthetic report flow before a write.
+This sample describes a planned workflow and contains no real user data.

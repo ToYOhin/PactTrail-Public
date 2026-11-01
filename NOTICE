@@ -1,0 +1,14 @@
+PactTrail
+Copyright 2026 PactTrail contributors
+
+PactTrail original product-layer code is Copyright 2026 PactTrail
+contributors and is licensed under the Apache License, Version 2.0.
+
+PactTrail depends on the separately distributed LightAgent project under the
+Apache License, Version 2.0. Its upstream license text is reproduced at
+licenses/LightAgent-LICENSE without changing its original application notice.
+PactTrail does not assert ownership of LightAgent code.
+
+PactTrail product-layer modifications and additions include its command-line
+interface, runtime adapter, product contracts, approval workflow, artifacts,
+tests, documentation, and delivery scripts.

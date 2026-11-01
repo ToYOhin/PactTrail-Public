@@ -1,0 +1,3 @@
+Synthetic evidence sample: recovery notes.
+The approval record alone does not prove transactional or repeat-safe writes.
+Missing recovery evidence must be reported rather than invented.

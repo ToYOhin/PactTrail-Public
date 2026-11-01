@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pacttrail-session" content="__PACTTRAIL_SESSION__">
+  <title>PactTrail · 本地报告审批</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-heading">跳到报告内容</a>
+  <div class="workspace">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="PactTrail 本地审批首页"><span class="brand-mark" aria-hidden="true">P</span>PactTrail</a>
+      <span class="local-label"><span aria-hidden="true"></span>本地 · Synthetic 样例</span>
+    </header>
+
+    <main>
+      <div class="page-heading">
+        <div><p class="eyebrow">EVIDENCE / REPORT REVIEW</p><h1>先审阅，再写入。</h1><p class="intro">检查完整报告与固定目标。每次批准只适用于当前这份内容。</p></div>
+        <button id="refresh" class="button button-quiet" type="button">刷新状态</button>
+      </div>
+
+      <div class="status-bar" aria-live="polite" aria-atomic="true">
+        <span id="state" class="state-tag">正在连接</span>
+        <p id="state-note">正在读取本地服务状态。</p>
+      </div>
+      <div id="notice" class="notice" role="alert" hidden></div>
+
+      <ol class="progress" aria-label="报告审批流程">
+        <li id="step-review"><span class="step-number" aria-hidden="true">1</span><span>审阅内容</span></li>
+        <li id="step-approve"><span class="step-number" aria-hidden="true">2</span><span>明确批准</span></li>
+        <li id="step-publish"><span class="step-number" aria-hidden="true">3</span><span>写入报告</span></li>
+      </ol>
+
+      <div class="review-layout">
+        <section class="report-panel" aria-labelledby="report-heading">
+          <div class="panel-heading"><div><p class="eyebrow">待审阅内容</p><h2 id="report-heading" tabindex="-1">完整报告</h2></div><span id="report-size" class="utility">尚未生成</span></div>
+          <form id="review-form" class="query-form">
+            <label for="query">查找证据</label>
+            <div class="query-row"><input id="query" name="query" type="text" value="approval" maxlength="256" autocomplete="off" spellcheck="false" required><button id="review" class="button button-primary" type="submit" disabled>生成审阅内容</button></div>
+            <p class="field-note">仅使用随包提供的三份 synthetic 文本。此操作创建待审阅记录，尚不写入报告。</p>
+          </form>
+          <div id="empty-report" class="empty-report"><span class="empty-symbol" aria-hidden="true">{ }</span><h3>先查看将要写入的内容</h3><p>生成后，这里会展示完整报告、引用来源与缺失证据。审阅记录一经创建即冻结。</p></div>
+          <pre id="report" class="report-content" aria-label="冻结的完整报告" hidden></pre>
+          <details id="proposal-details" class="proposal-details" hidden><summary>完整审批绑定记录</summary><p class="field-note">服务端冻结的原始记录；摘要按原值使用。</p><pre id="proposal" class="proposal-content"></pre></details>
+        </section>
+
+        <aside class="approval-panel" aria-labelledby="approval-heading">
+          <div class="panel-heading"><div><p class="eyebrow">固定写入范围</p><h2 id="approval-heading">审批与写入</h2></div></div>
+          <dl class="scope-list">
+            <div><dt>报告目标</dt><dd id="target" class="mono">读取中</dd></div>
+            <div><dt>状态目录</dt><dd id="root" class="mono">读取中</dd></div>
+            <div><dt>本地操作者</dt><dd id="operator">读取中</dd></div>
+          </dl>
+          <div id="record-binding" class="record-binding" hidden>
+            <dl class="scope-list">
+              <div><dt>报告 SHA-256</dt><dd id="report-hash" class="mono digest"></dd></div>
+              <div><dt>当前审批摘要</dt><dd id="proposal-hash" class="mono digest"></dd></div>
+              <div><dt>运行标识</dt><dd id="run-id" class="mono"></dd></div>
+              <div><dt>审批有效期至（UTC）</dt><dd id="expires-at" class="mono"></dd><dd id="expiry-note" class="field-note"></dd></div>
+            </dl>
+          </div>
+          <div class="action-area">
+            <p id="action-note" class="action-note">审阅内容生成后，可在此批准或否决。</p>
+            <label id="consent-row" class="consent" hidden><input id="consent" type="checkbox"><span>我已检查完整报告、目标与当前审批摘要，同意写入此报告。</span></label>
+            <div class="decision-actions"><button id="approve" class="button button-primary" type="button" hidden disabled>批准这份报告</button><button id="deny" class="button button-danger" type="button" hidden disabled>否决</button></div>
+            <button id="publish" class="button button-primary button-wide" type="button" hidden disabled>写入报告</button>
+            <button id="resume" class="button button-primary button-wide" type="button" hidden disabled>恢复本次写入</button>
+          </div>
+          <p class="boundary-note">批准与写入是两个独立操作。刷新页面只读取状态；目标、操作者和报告内容不能在浏览器中替换。</p>
+        </aside>
+      </div>
+      <section class="recovery-panel" aria-labelledby="recovery-heading">
+        <div class="panel-heading"><div><p class="eyebrow">停止与恢复</p><h2 id="recovery-heading">重新打开同一操作</h2></div><button id="copy-recovery" class="button button-quiet" type="button" disabled>复制恢复命令</button></div>
+        <p id="recovery-note" class="field-note">创建并核对审阅记录后，才会提供当前操作的命令。</p>
+        <pre id="recovery-command" class="proposal-content" tabindex="0" aria-label="PowerShell 恢复命令">尚无可用恢复命令。</pre>
+        <p id="copy-note" class="field-note" role="status" aria-live="polite"></p>
+        <p class="field-note">先复制，再在运行服务的终端按 Ctrl+C 停止。需要继续时，在原安装环境已激活的 PowerShell 中主动运行命令，打开终端返回的新本地地址。命令只重新打开同一操作；不会批准、续期或写入。写入仍需在页面明确操作。</p>
+      </section>
+      <footer class="page-footer"><span>单操作者 · 固定 synthetic 样例 · 仅本机</span><span id="checked-at">尚未读取服务端时间</span></footer>
+    </main>
+  </div>
+</body>
+</html>

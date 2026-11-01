@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pacttrail-session" content="__PACTTRAIL_SESSION__">
+  <title>PactTrail</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/task.js" defer></script>
+  <script src="/selection.js" defer></script>
+  <script src="/task_history.js" defer></script>
+  <script src="/followup.js" defer></script>
+  <script src="/web.js" defer></script>
+  <script src="/review.js" defer></script>
+  <script src="/draft.js" defer></script>
+  <script src="/web_search.js" defer></script>
+  <script src="/message_format.js" defer></script>
+  <script src="/saved_input.js" defer></script>
+  <script src="/continuation.js" defer></script>
+  <script src="/artifact_reference.js" defer></script>
+  <script src="/history_reference.js" defer></script>
+  <script src="/artifact_versions.js" defer></script>
+  <script src="/source_citations.js" defer></script>
+  <script src="/conversation_archive.js" defer></script>
+  <script src="/conversation.js" defer></script>
+  <script src="/composer.js" defer></script>
+  <script src="/verification.js" defer></script>
+  <script src="/model_connection.js" defer></script>
+  <script src="/send_preview.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a id="skip-link" class="skip-link" href="#message">跳到输入问题</a>
+  <main id="task-history-view" class="task-history-view" hidden>
+    <header class="task-history-header">
+      <div><p class="eyebrow">PactTrail · 本机任务记录</p><h1>任务记录</h1></div>
+      <button id="task-history-refresh" type="button">刷新记录</button>
+      <div id="agent-history-controls" class="agent-history-controls" hidden>
+        <button id="agent-history-back" type="button">返回对话</button>
+        <nav id="agent-history-tasks" class="agent-history-tasks" aria-label="本工作区已登记的启动任务组"></nav>
+        <p id="agent-history-status" class="task-history-status" role="status" aria-live="polite"></p>
+      </div>
+    </header>
+    <details class="supporting-details"><summary>记录说明</summary><p class="task-history-boundary">仅回看已保存记录，不恢复模型或执行请求。</p></details>
+    <p id="task-history-status" class="task-history-status" role="status" aria-live="polite"></p>
+    <section id="task-history-filters" class="task-history-filters" aria-label="筛选所选启动组的任务摘要" hidden>
+      <div class="task-history-filter-fields">
+        <label class="task-history-filter-query" for="task-history-query">目标关键词
+          <input id="task-history-query" type="search" maxlength="128" placeholder="筛选已加载的目标" autocomplete="off" aria-controls="task-history-list">
+        </label>
+        <label for="task-history-filter-status">任务状态
+          <select id="task-history-filter-status" aria-controls="task-history-list">
+            <option value="all">全部状态</option><option value="complete">记录为完成</option>
+            <option value="stopped">已停止</option><option value="error">执行出错</option><option value="running">原运行未结束</option>
+          </select>
+        </label>
+        <button id="task-history-filter-clear" type="button">清空筛选</button>
+      </div>
+      <p class="task-history-filter-note">仅筛选所选启动组中已加载的摘要；异常记录始终显示。</p>
+      <p id="task-history-filter-count" class="task-history-filter-note" role="status" aria-live="polite"></p>
+      <p id="task-history-filter-empty" class="task-history-filter-note" hidden></p>
+      <p id="task-history-filter-selection" class="task-history-filter-note" hidden>所选任务不在当前筛选结果中，详情仍保留。</p>
+    </section>
+    <div class="task-history-layout">
+      <nav id="task-history-list" class="task-history-list" aria-label="已保存的任务" tabindex="-1"></nav>
+      <article id="task-history-detail" class="task-history-detail" aria-label="所选任务记录" hidden>
+        <p class="section-label">目标与结果</p>
+        <h2 id="task-history-target"></h2>
+        <details class="supporting-details"><summary>任务编号与时间</summary><p id="task-history-time" class="task-history-meta"></p></details>
+        <p id="task-history-record-state" class="task-history-state"></p>
+        <button id="task-history-continue" class="text-button" type="button" hidden disabled>续接计划</button>
+        <p id="task-history-parent" class="task-parent" hidden></p>
+        <section id="task-history-context" aria-labelledby="task-history-context-heading" hidden>
+          <h3 id="task-history-context-heading">当时参考的几轮任务</h3>
+          <p id="task-history-context-status" role="status"></p>
+          <p>以下是当时保存的目标和报告，仅供回看。费用是各次进程的累计记录，不可相加。</p>
+          <ol id="task-history-rounds" class="followup-rounds"></ol>
+        </section>
+        <details class="supporting-details"><summary id="task-history-source-heading">查看当时使用的材料</summary><div id="task-history-source"></div></details>
+        <details class="supporting-details"><summary id="task-history-steps-heading">执行过程</summary><ol id="task-history-steps" class="task-steps"></ol></details>
+        <details class="supporting-details"><summary id="task-history-cost-heading">费用与用量</summary><p id="task-history-cost"></p></details>
+        <section class="task-artifact" aria-labelledby="task-history-report-heading">
+          <h3 id="task-history-report-heading">保存的报告</h3>
+          <details class="supporting-details"><summary>查看文件校验信息</summary><p id="task-history-report-identity"></p></details>
+          <p id="task-history-report-status" role="status"></p>
+          <section id="task-history-application" class="application-receipt" aria-label="文件应用记录" hidden></section>
+          <div class="task-artifact-actions">
+            <button id="task-history-report-load" type="button" disabled>读取报告正文</button>
+            <button id="task-history-report-open" type="button" disabled>打开报告</button>
+            <button id="task-history-report-download" type="button" disabled>下载报告</button>
+            <button id="task-history-reference" type="button" hidden disabled>迭代成果</button>
+            <button id="task-history-versions" type="button" hidden disabled>版本差异</button>
+            <button id="task-history-sources" type="button" hidden disabled>核对引用</button>
+          </div>
+          <pre id="task-history-report-text" hidden></pre>
+          <section id="task-history-draft" class="draft-preview" hidden>
+            <h3>草案成果</h3><p id="task-history-draft-status" role="status"></p>
+            <div id="task-history-draft-files"></div>
+          </section>
+          <details class="supporting-details"><summary>结果说明</summary><p class="supporting-note">保存不代表内容已验证；“通过”或“完成”仍需结合证据判断。</p></details>
+        </section>
+      </article>
+    </div>
+  </main>
+  <div id="workspace" class="app-shell" data-sidebar-open="false" data-inspector-open="false">
+    <aside id="sidebar" class="sidebar" aria-label="对话导航与设置">
+      <div class="sidebar-top">
+        <a class="brand" href="/" aria-label="PactTrail 首页">
+          <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 7h11l9 9-9 9H6V7Z" fill="currentColor" opacity=".12"/><path d="M7 7h10v10H7V7Zm10 0 9 9-9 9V7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 17v8h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>PactTrail</span>
+        </a>
+        <button id="sidebar-close" class="icon-button sidebar-close" type="button" aria-label="关闭侧边栏"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      </div>
+      <button id="new-chat" class="new-chat" type="button" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>新对话</span></button>
+      <nav class="workspace-nav" aria-label="当前工作区">
+        <p class="section-label">工作区</p>
+        <a class="nav-link active" href="#conversation-scroll" aria-current="page"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 4h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/><path d="M6 8h7M6 11h4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg><span id="workspace-caption">对话</span></a>
+        <button id="files-nav" class="nav-link" type="button" aria-controls="inspector"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h5l2 2h7v9H3V5Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/></svg><span>文件与改动</span></button>
+        <button id="agent-history-open" class="nav-link" type="button" aria-controls="task-history-view" hidden disabled>任务记录</button>
+      </nav>
+      <section class="current-session" aria-labelledby="current-session-label">
+        <p id="current-session-label" class="section-label">当前会话<span class="session-dot" aria-hidden="true"></span></p>
+        <a class="conversation-link" href="#conversation-scroll"><span class="conversation-line" aria-hidden="true"></span><span id="sidebar-conversation">新的对话</span></a>
+        <details class="supporting-details session-storage-details"><summary>保存方式</summary><p id="memory-caption" class="memory-caption">仅当前会话 · 暂不保存历史</p></details>
+      </section>
+      <section id="conversation-navigation" class="conversation-navigation" aria-label="本机会话" hidden>
+        <p class="section-label">最近对话</p>
+        <nav id="conversation-list" class="conversation-list" aria-label="选择会话"></nav>
+        <details id="conversation-management" class="supporting-details conversation-management"><summary>管理对话</summary>
+        <form id="conversation-title-form" class="history-title-form" hidden>
+          <label for="conversation-name">会话名称</label>
+          <input id="conversation-name" type="text" maxlength="160" autocomplete="off" aria-describedby="conversation-name-note">
+          <button id="conversation-rename" type="submit" disabled>重命名</button>
+          <p id="conversation-name-note" class="memory-caption" role="status">只改名称，最多80字。</p>
+        </form>
+        <div class="history-actions"><button id="conversation-export" type="button" disabled aria-describedby="conversation-export-note">导出文本</button></div>
+        <p id="conversation-export-note" class="memory-caption" role="status">只导出已显示消息和来源，不附加成果文件。</p>
+        <div class="history-actions"><button id="conversation-archive" type="button" disabled aria-controls="conversation-archive-confirmation" hidden>归档对话</button></div>
+        <div id="conversation-archive-confirmation" role="group" aria-labelledby="conversation-archive-question" hidden>
+          <p id="conversation-archive-question" class="memory-caption"></p>
+          <div class="history-actions"><button id="conversation-archive-cancel" type="button">取消</button><button id="conversation-archive-confirm" type="button" disabled>确认归档当前会话</button></div>
+        </div>
+        <div class="history-actions"><button id="conversation-delete" type="button" disabled aria-controls="conversation-delete-confirmation">删除对话</button></div>
+        <p id="conversation-delete-note" class="memory-caption">删除仅移除当前对话，保留任务历史、成果和累计额度。</p>
+        <div id="conversation-delete-confirmation" role="group" aria-labelledby="conversation-delete-question" hidden>
+          <p id="conversation-delete-question" class="memory-caption"></p>
+          <div class="history-actions">
+            <button id="conversation-delete-cancel" type="button">取消</button>
+            <button id="conversation-delete-confirm" type="button" disabled>确认删除当前会话</button>
+          </div>
+        </div>
+        </details>
+        <details id="conversation-archive-panel" class="supporting-details conversation-management" hidden>
+          <summary id="conversation-archive-summary">已归档的会话</summary>
+          <p id="conversation-archive-status" class="memory-caption" role="status" aria-live="polite"></p>
+          <nav id="conversation-archive-list" class="conversation-list" aria-label="查看归档会话"></nav>
+        </details>
+      </section>
+      <section id="history-workspace" class="history-workspace" aria-labelledby="history-label" hidden>
+        <p id="history-label" class="section-label">本地会话<span class="history-badge">离线</span></p>
+        <form id="history-search-form" class="history-search" role="search">
+          <label class="sr-only" for="history-query">查找会话标题或内容</label>
+          <input id="history-query" type="search" maxlength="80" placeholder="查找标题或内容" autocomplete="off" disabled>
+          <button id="history-search" type="submit" disabled>查找</button>
+        </form>
+        <nav id="history-list" class="history-list" aria-label="已保存的离线会话"></nav>
+        <p id="history-empty" class="memory-caption" hidden>没有匹配的会话。清空查找条件可查看全部。</p>
+        <details class="supporting-details"><summary>记录说明</summary><p class="memory-caption">新对话保留已有记录；管理与导出在“会话”面板。</p></details>
+      </section>
+      <div class="sidebar-bottom">
+        <div class="model-picker">
+          <label for="provider">模型</label>
+          <select id="provider" disabled><option value="offline">离线演示</option></select>
+          <details class="supporting-details"><summary>模式说明</summary><p id="model-note">正在读取本地会话…</p></details>
+        </div>
+        <section id="connection-panel" class="connection-panel" aria-labelledby="connection-heading" hidden>
+          <p id="connection-heading" class="section-label" tabindex="-1">模型连接</p>
+          <p id="connection-state" class="connection-state" role="status"></p>
+          <details id="model-config-details" class="supporting-details"><summary>模型设置</summary>
+          <form id="connection-form" autocomplete="off">
+            <label for="connection-key">DeepSeek API Key</label>
+            <input id="connection-key" type="password" maxlength="512" autocomplete="off" spellcheck="false" aria-describedby="connection-note" disabled>
+            <div class="connection-actions"><button id="connection-configure" type="submit" disabled>配置</button><button id="connection-activate" type="button" disabled>启用</button><button id="connection-clear" type="button" disabled>清除</button></div>
+          </form>
+          <p id="connection-note">仅保留在本次服务内存中。配置和启用不会发送请求；只接受三轮固定问题。</p>
+          <details class="supporting-details"><summary>调用与费用</summary>
+            <p id="connection-model"></p>
+            <p id="connection-cost"></p>
+            <p id="connection-usage"></p>
+          </details>
+          </details>
+        </section>
+        <details class="sidebar-note supporting-details">
+          <summary id="storage-note-title" class="note-label">存储说明</summary>
+          <p id="storage-note">仅保存在当前服务的内存中。刷新可查看当前对话；关闭服务后不保留。打开多个标签页会看到同一段对话。</p>
+          <p id="storage-limit-note">新对话会清空当前上下文，不会保存历史。</p>
+        </details>
+        <div class="sidebar-footer"><span class="local-dot" aria-hidden="true"></span><span id="local-scope">本机 · 固定样例</span><span class="local-label">LOCAL</span></div>
+      </div>
+    </aside>
+    <main class="chat-main">
+      <header class="chat-header">
+        <div class="header-heading">
+          <button id="sidebar-toggle" class="icon-button sidebar-toggle" type="button" aria-label="打开侧边栏" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M8 4v12" stroke="currentColor" stroke-width="1.4"/></svg></button>
+          <div class="header-title"><p class="eyebrow"><span id="workspace-eyebrow">对话</span><span aria-hidden="true">/</span></p><h1 id="conversation-title">新的对话</h1></div>
+        </div>
+        <div class="header-actions">
+          <button id="command-open" class="icon-button" type="button" aria-label="快捷操作" title="快捷操作 (Ctrl+K)" aria-haspopup="dialog" aria-controls="command-palette"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 3v11a3 3 0 1 1-3-3h12a3 3 0 1 1-3 3V6a3 3 0 1 1 3 3H4a3 3 0 1 1 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+          <span id="conversation-status" class="conversation-status">就绪</span>
+          <button id="sources-toggle" class="icon-button sources-toggle" type="button" aria-label="切换文件与改动面板" aria-controls="inspector" aria-expanded="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M12 4v12" stroke="currentColor" stroke-width="1.4"/></svg><span id="sources-toggle-label">文件与改动</span></button>
+        </div>
+      </header>
+      <div class="conversation-scroll" id="conversation-scroll" tabindex="-1">
+        <section id="welcome" class="welcome" aria-labelledby="welcome-title">
+          <p id="welcome-eyebrow" class="welcome-eyebrow">PactTrail</p>
+          <h2 id="welcome-title">这次想做什么？</h2>
+          <p id="welcome-description" class="welcome-description">选择任务，开始工作。</p>
+          <div class="demo-status"><span class="local-dot" aria-hidden="true"></span><span id="mode-badge" class="mode-badge">离线演示 · 不连接模型</span></div>
+          <div class="welcome-actions" aria-label="快速开始">
+            <button id="quick-answer" class="quick-action" type="button" disabled><span aria-hidden="true">↗</span> 提问</button>
+            <button id="quick-report" class="quick-action" type="button" disabled><span aria-hidden="true">≡</span> 生成报告</button>
+            <button id="quick-draft" class="quick-action" type="button" disabled><span aria-hidden="true">⌘</span> 修改代码</button>
+          </div>
+          <details class="welcome-details supporting-details"><summary>模式说明</summary><p id="demo-note" class="demo-note">回答由固定演示规则生成，不是真实 AI 回答。当前仅接受下方样例问题。</p><p id="answer-mode-note" class="demo-note" hidden></p></details>
+        </section>
+        <div id="messages" class="messages" role="log" aria-label="对话记录" aria-live="polite" aria-relevant="additions"></div>
+        <section id="task-progress" class="task-progress" aria-label="当前任务进度" hidden>
+          <div class="task-progress-heading"><strong id="task-progress-title" role="status"></strong><button id="task-progress-open" class="text-button" type="button" aria-controls="inspector" disabled>查看详情</button></div>
+          <div class="task-progress-actions"><button id="task-progress-reconcile" class="text-button" type="button" disabled hidden>核对状态</button></div>
+          <details id="task-progress-details"><summary>过程</summary>
+            <p id="task-progress-note"></p><p id="task-progress-current" class="task-progress-current" hidden></p>
+            <p id="task-progress-diagnostic" hidden></p><p id="task-progress-settlement" class="task-progress-settlement"></p><p id="task-progress-settlement-detail"></p>
+            <ol id="task-progress-steps" aria-label="本轮已确认的执行事实"></ol>
+            <button id="task-progress-compose" class="text-button" type="button" aria-controls="message" disabled hidden>准备下一问</button>
+          </details>
+        </section>
+        <div id="pending" class="pending" role="status" hidden><span class="pending-dot" aria-hidden="true"></span><span id="pending-note">正在准备离线回答…</span></div>
+        <div id="operation-note" class="operation-note" role="status" hidden></div>
+      </div>
+      <div class="composer-alerts">
+        <button id="recover-state" class="text-button recover-state" type="button" hidden>刷新状态</button>
+        <button id="stop" class="stop-button" type="button" hidden disabled><span class="stop-icon" aria-hidden="true"></span>停止</button>
+        <div id="notice" class="notice" role="alert" hidden></div>
+        <p id="conversation-scope" class="conversation-scope" role="status" hidden></p>
+        <p id="send-preview-blocker" class="send-preview-blocker" role="status" hidden></p>
+        <p id="web-search-feedback" class="web-search-feedback" role="status" aria-live="polite" hidden></p>
+        <section id="model-setup" class="model-setup" aria-labelledby="model-setup-state" hidden>
+          <div class="model-setup-copy"><p id="model-setup-state" class="model-setup-state" role="status" aria-live="polite"></p><p id="model-setup-note" class="model-setup-note"></p></div>
+          <button id="model-setup-open" class="text-button" type="button" aria-controls="connection-panel" disabled>配置模型</button>
+        </section>
+      </div>
+      <details id="composer-fold" class="composer-area composer-fold" open>
+        <summary class="composer-fold-toggle"><span>输入消息</span><span class="composer-fold-hint" aria-hidden="true"></span></summary>
+        <form id="composer" novalidate>
+          <div id="composer-taskbar" class="composer-taskbar" aria-label="当前任务与关联文件" hidden>
+            <div id="task-intent-controls" class="task-intent-controls" hidden>
+              <label class="sr-only" for="task-intent">任务类型</label>
+              <select id="task-intent" form="composer" aria-describedby="task-intent-scope" disabled>
+                <option id="task-intent-answer" value="answer" hidden disabled>提问</option>
+                <option id="task-intent-report" value="report">报告</option>
+                <option id="task-intent-draft" value="change_draft" disabled>修改</option>
+                <option id="task-intent-create" value="create_file" hidden disabled>新建文件</option>
+              </select>
+            </div>
+            <button id="composer-files" class="composer-files" type="button" aria-controls="inspector" disabled>关联文件</button>
+          </div>
+          <div id="task-creation-controls" class="composer-creation" hidden>
+            <label for="task-creation-path">新文件路径</label>
+            <input id="task-creation-path" form="composer" type="text" maxlength="320" autocomplete="off" spellcheck="false" placeholder="例如 docs/notes.md" aria-describedby="task-creation-note" disabled>
+            <p id="task-creation-note"></p>
+          </div>
+          <label class="sr-only" for="message">你的问题</label>
+          <textarea id="message" rows="2" placeholder="描述任务，或选择示例…" aria-describedby="input-note char-count" disabled></textarea>
+          <label id="task-material-consent" class="task-material-consent" hidden><input id="task-use-material" type="checkbox" disabled><span id="task-material-consent-label"></span></label>
+          <label id="task-followup-consent" class="task-material-consent" hidden><input id="task-use-followup" type="checkbox" disabled><span>我确认使用右侧预览的历史目标、报告和材料快照，针对这次问题开始一个新任务。</span></label>
+          <div class="composer-actions">
+            <span class="composer-mode"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 13h6M8 11v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span id="composer-provider">离线演示</span><span class="composer-divider" aria-hidden="true"></span><span id="char-count">0 / 256</span></span>
+            <div class="action-buttons"><label id="web-search-controls" class="web-search-toggle" title="仅发送当前问题到搜索服务，自动取得网页链接。" hidden><input id="web-search-toggle" type="checkbox" disabled><span>联网搜索</span></label><button id="send" class="send-button" type="submit" disabled><span>发送</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 15V5m-4 4 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          </div>
+        </form>
+        <div class="composer-tools">
+          <details id="conversation-archive-preview" class="supporting-details artifact-reference" hidden>
+            <summary>归档会话原文</summary>
+            <div class="artifact-reference-body">
+              <div class="artifact-reference-actions"><button id="conversation-archive-load" type="button" disabled>重新读取归档</button><button id="conversation-archive-restore" type="button" disabled>恢复到活动列表</button></div>
+              <p id="conversation-archive-restore-note"></p>
+              <section id="conversation-archive-content" aria-label="归档会话完整内容" hidden>
+                <h3 id="conversation-archive-title"></h3><p id="conversation-archive-note"></p>
+                <details id="conversation-archive-dialogue" class="supporting-details"><summary>查看完整对话与成果</summary><div id="conversation-archive-turns"></div></details>
+                <details id="conversation-archive-saved" class="supporting-details" hidden><summary>查看保存的待发草稿</summary><pre id="conversation-archive-saved-text" class="source-evidence-text" tabindex="0"></pre></details>
+                <details id="conversation-archive-reference" class="supporting-details" hidden><summary>查看明确关联的参考原文</summary><pre id="conversation-archive-reference-text" class="source-evidence-text" tabindex="0"></pre></details>
+                <details id="conversation-archive-scope" class="supporting-details" hidden><summary>查看当时来源快照</summary><pre id="conversation-archive-scope-text" class="source-evidence-text" tabindex="0"></pre></details>
+              </section>
+            </div>
+          </details>
+          <details id="source-citations-panel" class="supporting-details artifact-reference" hidden>
+            <summary>来源引用</summary>
+            <div class="artifact-reference-body">
+              <div class="artifact-reference-actions"><button id="source-citations-load" type="button" disabled>读取引用</button><button id="source-citations-current" class="text-button" type="button" hidden disabled>选择当前成果</button></div>
+              <p id="source-citations-status" role="status" aria-live="polite"></p>
+              <section id="source-citations-content" aria-label="来源引用核对结果" hidden>
+                <p id="source-citations-note"></p>
+                <details id="source-citations-original" class="supporting-details"><summary>查看完整模型原文</summary><pre id="source-citations-original-text" class="source-evidence-text" tabindex="0"></pre></details>
+                <details id="source-citations-claims" class="supporting-details"><summary>查看模型引用（待核对）</summary><div id="source-citations-claim-list"></div></details>
+                <details id="source-citations-evidence" class="supporting-details"><summary>查看实际读取或搜索的来源</summary><div id="source-citations-source-list"></div></details>
+              </section>
+            </div>
+          </details>
+          <details id="artifact-versions-panel" class="supporting-details artifact-reference" hidden>
+            <summary>版本差异</summary>
+            <div class="artifact-reference-body">
+              <div class="artifact-reference-actions"><button id="artifact-versions-load" type="button" disabled>读取版本</button><button id="artifact-versions-current" class="text-button" type="button" hidden disabled>选择当前成果</button></div>
+              <p id="artifact-versions-status" role="status" aria-live="polite"></p>
+              <section id="artifact-versions-content" aria-label="成果版本关系" hidden>
+                <p id="artifact-versions-relation"></p>
+                <details id="artifact-versions-identity" class="supporting-details"><summary>查看独立成果身份</summary><p id="artifact-versions-identity-text" class="artifact-version-identity"></p></details>
+                <details id="artifact-versions-new" class="supporting-details"><summary>查看新成果完整原文</summary><p id="artifact-versions-new-goal"></p><p id="artifact-versions-new-state"></p><pre id="artifact-versions-new-text" class="artifact-version-original" tabindex="0"></pre></details>
+                <details id="artifact-versions-old" class="supporting-details"><summary>查看所引用旧成果完整原文</summary><p id="artifact-versions-old-goal"></p><p id="artifact-versions-old-state"></p><pre id="artifact-versions-old-text" class="artifact-version-original" tabindex="0"></pre></details>
+                <p id="artifact-versions-comparison-note"></p>
+                <details id="artifact-versions-diff" class="supporting-details"><summary>查看内容差异</summary><div id="artifact-versions-files"></div></details>
+              </section>
+            </div>
+          </details>
+          <details id="history-reference-panel" class="supporting-details artifact-reference" hidden>
+            <summary id="history-reference-summary">历史参考 · 默认全部成功历史</summary>
+            <div class="artifact-reference-body">
+              <p id="history-reference-scope"></p>
+              <p id="history-reference-empty">尚无成功历史；可继续输入新问题。</p>
+              <ul id="history-reference-list" class="history-reference-list" aria-label="选择本次参考的成功历史"></ul>
+              <div class="artifact-reference-actions"><button id="history-reference-apply" type="button" disabled>只参考勾选历史</button><button id="history-reference-all" class="text-button" type="button" disabled>恢复全部成功历史</button></div>
+              <p id="history-reference-status" role="status" aria-live="polite"></p>
+              <section id="context-summary-active" aria-label="已采用的摘要" hidden><ul id="context-summary-list" class="context-summary-list"></ul><p id="context-summary-warning" role="status"></p></section>
+              <details id="context-summary-editor" class="supporting-details" hidden>
+                <summary>摘要候选</summary>
+                <p id="context-summary-origin"></p>
+                <label for="context-summary-text">核对并编辑摘要</label><textarea id="context-summary-text" rows="5" spellcheck="false" disabled></textarea>
+                <p id="context-summary-size"></p>
+                <div class="artifact-reference-actions"><button id="context-summary-adopt" type="button" disabled>采用此摘要</button><button id="context-summary-cancel" type="button" class="text-button">取消</button></div>
+                <p class="supporting-note">仅替换本次参考的发送正文；原历史、成果及授权保留。</p>
+                <p id="context-summary-status" role="status" aria-live="polite"></p>
+              </details>
+              <details id="history-reference-original" class="supporting-details" hidden>
+                <summary>查看完整历史原文</summary>
+                <p id="history-reference-identity"></p>
+                <h3>原问题</h3><pre id="history-reference-goal" tabindex="0"></pre>
+                <h3>原回答</h3><pre id="history-reference-answer" tabindex="0"></pre>
+                <section id="history-reference-artifact-section" hidden><h3>成果完整原文</h3><pre id="history-reference-artifact" tabindex="0"></pre></section>
+              </details>
+            </div>
+          </details>
+          <details id="artifact-reference-panel" class="supporting-details artifact-reference" hidden>
+            <summary id="artifact-reference-summary">成果参考</summary>
+            <div class="artifact-reference-body">
+              <p id="artifact-reference-attached" hidden></p>
+              <div class="artifact-reference-actions"><button id="artifact-reference-load" type="button" disabled>读取成果原文</button><button id="artifact-reference-current" class="text-button" type="button" hidden disabled>选择当前成果</button><button id="artifact-reference-remove" class="text-button" type="button" hidden disabled>移除参考</button></div>
+              <p id="artifact-reference-status" role="status" aria-live="polite"></p>
+              <section id="artifact-reference-preview" aria-label="成果原文参考" hidden>
+                <p id="artifact-reference-goal"></p>
+                <p id="artifact-reference-source"></p>
+                <details id="artifact-reference-original" class="supporting-details"><summary>查看成果原文</summary><pre id="artifact-reference-text" tabindex="0"></pre></details>
+                <button id="artifact-reference-attach" type="button" hidden disabled>关联为本次参考</button>
+              </section>
+            </div>
+          </details>
+          <details id="continuation-panel" class="supporting-details continuation" hidden>
+            <summary>续接任务</summary>
+            <div class="continuation-body">
+              <div class="continuation-actions"><button id="continuation-load" type="button" disabled>续接计划</button><button id="continuation-prepare" type="button" disabled hidden>准备为新问题</button><button id="continuation-source" class="text-button" type="button" hidden>核对当前来源</button></div>
+              <p id="continuation-status" role="status" aria-live="polite"></p>
+              <section id="continuation-plan" aria-label="中断任务的续接计划" hidden>
+                <p id="continuation-goal"></p>
+                <h3>已完成事实</h3><ul id="continuation-facts"></ul>
+                <h3>已有成果</h3><ul id="continuation-artifacts"></ul>
+                <h3>未完成与待核对</h3><ul id="continuation-unfinished"></ul>
+                <p id="continuation-source-note"></p>
+                <details id="continuation-question" class="supporting-details"><summary>查看准备的问题</summary><pre id="continuation-message" tabindex="0"></pre></details>
+              </section>
+            </div>
+          </details>
+          <details id="saved-input-panel" class="supporting-details saved-input" hidden>
+            <summary id="saved-input-summary">待发草稿</summary>
+            <div class="saved-input-body">
+              <div class="saved-input-actions"><button id="saved-input-save" type="button" disabled>保存输入</button><button id="saved-input-restore" type="button" disabled>恢复输入</button><button id="saved-input-delete" class="text-button" type="button" disabled>删除</button></div>
+              <p id="saved-input-status" role="status" aria-live="polite"></p>
+              <details id="saved-input-preview" class="supporting-details" hidden><summary>查看已存草稿</summary><p id="saved-input-meta"></p><p id="saved-input-source"></p><pre id="saved-input-message" tabindex="0"></pre></details>
+              <div id="saved-input-confirmation" class="saved-input-confirmation" hidden><p id="saved-input-confirm-note"></p><button id="saved-input-confirm" type="button" disabled>确认</button><button id="saved-input-cancel" class="text-button" type="button">取消</button></div>
+            </div>
+          </details>
+          <details id="composer-options" class="supporting-details composer-options"><summary>更多</summary>
+            <div class="composer-options-body">
+              <details id="task-intent-explanation" class="supporting-details task-intent-details" hidden><summary>任务说明</summary><p id="task-intent-scope"></p></details>
+              <details class="prompt-examples"><summary>试用示例</summary>
+                <div class="sample-heading"><button id="more-prompts" class="text-button" type="button" aria-controls="prompts" aria-expanded="false">更多样例</button></div>
+                <div id="prompts" class="prompts" aria-label="填入样例问题"></div>
+              </details>
+              <details class="supporting-details composer-help"><summary>使用说明</summary>
+                <p id="input-note">Enter 发送 · Shift + Enter 换行。</p>
+                <p id="composer-draft-note" class="memory-caption" hidden>未发送正文按会话保留在本页；刷新或关闭页面会清除。</p>
+              </details>
+              <button id="refresh" class="text-button" type="button">刷新状态</button>
+            </div>
+          </details>
+          <section id="send-preview" class="send-preview" aria-label="本次参考" hidden>
+            <details id="send-preview-details" class="supporting-details send-preview-details">
+              <summary id="send-preview-summary">本次参考</summary>
+              <div class="send-preview-detail-body">
+                <button id="send-preview-refresh" class="send-preview-refresh" type="button" disabled>核对参考</button>
+                <p id="send-preview-status" role="status">核对本次参考范围。</p>
+                <section id="send-preview-plan" class="send-preview-plan" aria-label="参考范围与原文" hidden>
+                  <p id="send-preview-plan-scope"></p>
+                  <ul id="send-preview-plan-items" aria-label="定位本次发送的原文"></ul>
+                  <p id="send-preview-plan-limit" class="send-preview-blocker" hidden></p>
+                  <details id="send-preview-duplicates" class="supporting-details" hidden><summary>重复参考建议</summary><ul id="send-preview-duplicate-items"></ul><p class="supporting-note">仅按相同内容提示，不自动移除参考。</p></details>
+                </section>
+                <div id="send-preview-context"></div>
+                <details id="send-preview-usage" class="supporting-details send-preview-usage">
+                  <summary>用量详情</summary>
+                  <p id="send-budget-line" class="send-budget-line" hidden></p>
+                  <p id="send-preview-plan-summary"></p>
+                  <dl id="send-preview-values"></dl>
+                  <ul id="send-preview-usage-items" class="context-usage-items" aria-label="详细用量分解"></ul>
+                  <p id="send-preview-usage-limit" class="send-preview-blocker" hidden></p>
+                  <p id="turn-count">每段对话最多 6 次提问</p>
+                  <p id="send-preview-note" class="supporting-note">估算只对应首个请求；发送时重新核对。</p>
+                  <p class="supporting-note">勾选联网时，搜索结果在发送后获取并重新估算。</p>
+                </details>
+              </div>
+            </details>
+          </section>
+        </div>
+      </details>
+    </main>
+    <aside id="inspector" class="inspector" aria-label="来源与会话信息">
+      <div class="inspector-header"><span class="inspector-heading">文件与改动</span><button id="sources-close" class="icon-button" type="button" aria-label="关闭文件与改动面板"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+      <div class="inspector-tabs" role="tablist" aria-label="上下文内容"><button id="tab-materials" type="button" role="tab" aria-selected="true" aria-controls="materials-panel"><span id="materials-tab-title">来源</span><span id="source-count" class="count-badge">0</span></button><button id="tab-session" type="button" role="tab" aria-selected="false" aria-controls="session-panel" tabindex="-1">会话</button></div>
+      <section id="materials-panel" class="inspector-panel" role="tabpanel" aria-labelledby="tab-materials">
+        <details id="conversation-results-panel" class="conversation-results-panel supporting-details" hidden>
+          <summary>会话成果</summary>
+          <nav id="conversation-results" class="conversation-list" aria-label="查看已保存的成果"></nav>
+          <p id="conversation-result-status" role="status"></p>
+          <div class="task-artifact-actions"><button id="conversation-result-open" type="button" disabled>打开成果</button><button id="conversation-result-download" type="button" disabled>下载副本</button><button id="conversation-result-review" type="button" aria-haspopup="dialog" aria-controls="draft-review-dialog" hidden disabled>继续审阅</button></div>
+          <pre id="conversation-result-text" hidden></pre>
+          <section id="conversation-result-draft" class="draft-preview" hidden>
+            <h3>保存的文件改动</h3><p id="conversation-result-draft-status" role="status"></p>
+            <div id="conversation-result-draft-files"></div>
+          </section>
+          <section id="conversation-result-application" class="application-receipt" hidden></section>
+        </details>
+        <section id="task-panel" class="task-panel" aria-label="工具任务步骤与成果" hidden>
+          <p id="task-parent" class="task-parent" hidden></p>
+          <div class="panel-intro"><p class="section-label">任务与成果</p><p id="task-cost"></p></div>
+          <p id="task-empty" class="memory-caption">发送任务后，成果显示在这里。</p>
+          <section id="task-artifact" class="task-artifact" aria-labelledby="task-artifact-heading" hidden>
+            <h3 id="task-artifact-heading">保存的报告</h3>
+            <p id="task-artifact-state" class="section-label" role="status"></p>
+            <h3 id="task-artifact-name"></h3>
+            <div class="task-artifact-actions"><button id="task-open" type="button" disabled>打开报告</button><button id="task-download" type="button" disabled>下载副本</button></div>
+            <details><summary id="task-artifact-summary">预览报告内容</summary><pre id="task-artifact-text"></pre></details>
+            <section id="draft-review-card" class="draft-review-card" aria-label="草案审阅" hidden>
+              <p id="draft-review-summary"></p>
+              <button id="draft-review-open" type="button" aria-haspopup="dialog" aria-controls="draft-review-dialog" disabled>展开审阅</button>
+            </section>
+            <section id="task-draft" class="draft-preview" hidden>
+              <h3>文件改动</h3><p id="task-draft-status" role="status"></p>
+              <div id="task-draft-files"></div>
+              <div id="task-draft-precheck" hidden>
+                <h4>草案 Python 语法预检</h4>
+                <details class="supporting-details"><summary>预检说明</summary><p>主 Agent 本次新请求已核验并保存的 Python 草案自动预检一次；旧成果仍需手动预检。只解析新文本，不执行代码或应用修改；失败不自动修复。语法通过不代表逻辑正确或功能测试通过。</p></details>
+                <button id="task-draft-check" type="button" disabled>语法预检</button>
+                <button id="task-draft-check-cancel" type="button" hidden disabled>取消预检</button>
+                <p id="task-draft-check-status" role="status" aria-live="polite"></p>
+                <ul id="task-draft-check-files"></ul>
+                <section id="task-draft-repair-region" hidden>
+                  <div class="material-actions"><button id="task-draft-repair" type="button" disabled>准备修复草案</button><button id="task-draft-repair-clear" type="button" hidden disabled>清除预填请求</button></div>
+                  <p id="task-draft-repair-feedback" role="status" aria-live="polite"></p>
+                </section>
+              </div>
+              <div id="task-apply-actions" class="task-apply-actions" hidden>
+                <h4>应用到项目</h4>
+                <p id="task-apply-target" class="apply-target"></p>
+                <ul id="task-apply-files"></ul>
+                <label class="task-material-consent"><input id="task-apply-confirm" type="checkbox" disabled><span id="task-apply-consent-label">我已查看以上差异，确认覆盖此目录中的这些文件。</span></label>
+                <button id="task-apply" type="button" disabled>应用修改</button>
+                <p id="task-apply-status" role="status" aria-live="polite"></p>
+              </div>
+            </section>
+            <details class="supporting-details"><summary>保存与校验</summary><p>以下信息由应用核对，与报告正文分开记录。</p><p id="task-artifact-path"></p><p id="task-artifact-hash"></p></details>
+          </section>
+          <details class="supporting-details"><summary>来源信息</summary><p id="task-source" class="task-source"></p></details>
+          <details class="supporting-details"><summary>执行过程</summary><ol id="task-steps" class="task-steps" aria-label="决策与工具结果" aria-live="polite"></ol></details>
+          <details class="supporting-details"><summary>用量与限制</summary><p id="task-budget"></p><p id="task-total"></p></details>
+          <details class="supporting-details"><summary>核对说明</summary><p id="task-evidence-scope" class="material-scope"></p></details>
+        </section>
+        <section id="project-panel" class="project-panel" aria-labelledby="project-heading" hidden>
+          <div class="panel-intro"><p id="project-heading" class="section-label">项目文件</p></div>
+          <section id="project-locator" class="project-locator" aria-label="在绑定目录定位文件" hidden>
+            <p class="material-scope">已绑定目录</p><p id="project-locate-root" class="apply-target"></p>
+            <details class="project-locate-bounds"><summary>定位范围</summary><p class="material-scope">仅 .txt/.md/.py/.json；最多 512 项、8 层、20 个候选，检查期限 2 秒。路径定位只读清单；正文关键词区分大小写，最多读取 64 KiB。关联须预览确认，最多 4 份、合计 8 KiB、每份 256 行。</p></details>
+            <div class="project-locate-inputs">
+              <label for="project-locate-mode" class="sr-only">定位方式</label>
+              <select id="project-locate-mode"><option value="path">文件路径</option><option value="text">正文关键词</option></select>
+              <label for="project-locate-query" class="sr-only">定位关键词</label>
+              <input id="project-locate-query" type="search" maxlength="256" placeholder="输入路径片段或关键词" aria-describedby="project-locate-summary project-locate-feedback" disabled>
+            </div>
+            <div class="material-actions"><button id="project-locate-search" type="button" disabled>定位文件</button><button id="project-locate-cancel" type="button" hidden disabled>取消定位</button></div>
+            <p id="project-locate-summary" class="material-scope" role="status" aria-live="polite"></p>
+            <p id="project-locate-feedback" class="material-feedback" role="alert" hidden></p>
+            <div id="project-locate-results" class="project-file-list" role="group" aria-label="选择定位结果"></div>
+            <div class="material-actions"><button id="project-locate-preview" type="button" disabled>预览所选文件</button></div>
+            <pre id="project-locate-preview-text" class="project-preview-text" aria-label="定位所选文件的快照预览" tabindex="0" hidden></pre>
+            <div class="material-actions"><button id="project-locate-attach" type="button" hidden disabled>确认关联此快照</button></div>
+          </section>
+          <label class="material-file-label" for="project-files">选择目录</label>
+          <input id="project-files" class="material-file" type="file" webkitdirectory multiple aria-describedby="project-scope project-feedback" disabled>
+          <p id="project-scope" class="material-scope"></p>
+          <p id="project-feedback" class="material-feedback" role="alert" hidden></p>
+          <div id="conversation-scope-actions" class="material-actions" hidden>
+            <button id="conversation-refresh-files" type="button" disabled>核对最新文件</button>
+            <button id="conversation-confirm-scope" type="button" disabled>确认此范围</button>
+          </div>
+          <div id="project-file-list" class="project-file-list" role="group" aria-label="勾选本次要读取的项目文件"></div>
+          <div class="material-actions"><button id="project-preview" type="button" disabled>预览所选文件</button><button id="project-cancel" type="button" hidden disabled>取消项目选择</button></div>
+          <pre id="project-preview-text" class="project-preview-text" aria-label="仅选定文件的正文预览" tabindex="0" hidden></pre>
+          <div class="material-actions"><button id="project-attach" type="button" hidden disabled>关联已预览文件</button><button id="project-remove" type="button" hidden disabled>移除项目关联</button></div>
+          <p class="material-scope">发送后快照和报告保存在本次任务目录；移除关联或新对话保留已写文件。单文本材料与项目文件不能同时关联。</p>
+        </section>
+        <section id="project-verification" class="project-panel" aria-labelledby="project-verify-heading" hidden>
+          <div class="panel-intro"><p id="project-verify-heading" class="section-label">Python 语法验证</p><p>点击后核对已确认范围内的 Python 文件语法，最多 4 份文件、8192 字节。不执行文件中的代码；结果仅保留在当前服务。</p></div>
+          <p id="project-verify-target" class="apply-target"></p>
+          <div class="material-actions"><button id="project-verify-start" type="button" disabled>验证 Python 语法</button><button id="project-verify-cancel" type="button" hidden disabled>取消验证</button></div>
+          <p id="project-verify-status" role="status" aria-live="polite"></p>
+          <p id="project-verify-exit"></p>
+          <ul id="project-verify-files" aria-label="逐文件语法结果"></ul>
+          <section id="project-verify-summary-region" class="verification-summary" aria-label="可复制的语法验证摘要" hidden>
+            <button id="project-verify-copy" type="button" disabled>复制验证摘要</button>
+            <label for="project-verify-summary">验证摘要（不含源码）</label>
+            <textarea id="project-verify-summary" rows="6" readonly spellcheck="false" aria-describedby="project-verify-copy-feedback"></textarea>
+            <p id="project-verify-copy-feedback" role="status" aria-live="polite"></p>
+          </section>
+          <section id="project-verify-repair-region" class="verification-summary" aria-label="采用语法失败反馈" hidden>
+            <div class="material-actions"><button id="project-verify-repair" type="button" disabled>采用失败反馈，准备修复草案</button><button id="project-verify-repair-clear" type="button" hidden disabled>清除预填请求</button></div>
+            <p id="project-verify-repair-feedback" role="status" aria-live="polite"></p>
+          </section>
+          <p id="project-verify-location-notice" role="status" hidden></p>
+          <section id="project-verify-location" class="verification-location" aria-labelledby="project-verify-location-title" hidden>
+            <p id="project-verify-location-title" tabindex="-1"></p>
+            <div id="project-verify-location-rows" class="material-lines" aria-label="受测快照错误行及附近内容"></div>
+          </section>
+        </section>
+        <section id="local-material" class="local-material" aria-labelledby="material-heading" hidden>
+          <div class="panel-intro"><p id="material-heading" class="section-label">文本材料</p><details class="supporting-details"><summary>材料要求</summary><p id="material-picker-note">UTF-8 .txt，最多 8192 字节、256 行；先预览再关联。</p></details></div>
+          <label class="material-file-label" for="material-file">选择文本</label>
+          <input id="material-file" class="material-file" type="file" accept=".txt" aria-describedby="material-picker-note material-scope" disabled>
+          <p id="material-scope" class="material-scope"></p>
+          <p id="material-feedback" class="material-feedback" role="alert" hidden></p>
+          <p id="material-empty" class="material-empty">未关联材料。</p>
+          <div id="material-preview" class="material-preview" hidden>
+            <p id="material-preview-state" class="material-preview-state"></p>
+            <h3 id="material-name" class="material-name"></h3>
+            <p id="material-metadata" class="material-metadata"></p>
+            <div id="material-search-controls" class="material-search-controls" hidden>
+              <label for="material-search">在当前材料中查找</label>
+              <input id="material-search" type="text" maxlength="257" autocomplete="off" spellcheck="false" placeholder="输入原文关键词…" aria-describedby="material-search-help material-search-status" disabled>
+              <p id="material-search-help">区分大小写 · 最多 128 字符 · 仅在浏览器中查找，不保存。Enter 下一处，Shift + Enter 上一处，Esc 清除。</p>
+              <div class="material-search-actions"><button id="material-match-previous" type="button" disabled>上一处</button><button id="material-match-next" type="button" disabled>下一处</button><button id="material-search-clear" type="button" disabled>清除</button></div>
+              <p id="material-search-status" role="status" aria-live="polite"></p>
+            </div>
+            <div id="material-lines" class="material-lines" role="region" aria-label="材料原文片段，带行号" tabindex="0"></div>
+            <div class="material-pagination"><button id="material-previous" type="button" disabled>上一页</button><span id="material-page-label" role="status"></span><button id="material-next" type="button" disabled>下一页</button></div>
+          </div>
+          <div class="material-actions"><button id="material-attach" type="button" hidden disabled>加入当前会话</button><button id="material-cancel" type="button" hidden disabled>取消选择</button><button id="material-remove" type="button" hidden disabled>移除材料</button></div>
+        </section>
+        <section id="web-panel" class="web-panel" aria-labelledby="web-heading" hidden>
+          <h2 id="web-heading">网页</h2>
+          <details class="supporting-details"><summary>网页要求</summary><p>最多 3 页、合计 8192 字节；先预览再关联，超限不加入。</p></details>
+          <label for="web-urls">网页地址 · 每行一个</label>
+          <textarea id="web-urls" rows="3" maxlength="1538" placeholder="https://example.org/page" spellcheck="false" disabled></textarea>
+          <div class="task-artifact-actions">
+            <button id="web-fetch" type="button" disabled>获取并预览</button>
+            <button id="web-cancel" type="button" hidden disabled>取消获取</button>
+            <button id="web-clear" type="button" disabled>清除预览</button>
+          </div>
+          <p id="web-status" role="status" aria-live="polite"></p>
+          <div id="web-preview" hidden></div>
+          <button id="web-attach" type="button" hidden disabled>关联网页快照</button>
+          <details class="supporting-details"><summary>网页如何使用</summary><p>只读取正文，不执行脚本、不使用登录态，也不自动打开链接。每次发送仍需确认当前快照。获取时间不是发布时间；网页内容仍需核实。追问使用保存的文本，不重新联网。</p></details>
+        </section>
+        <section id="followup-panel" class="followup-panel" aria-labelledby="followup-heading" hidden>
+          <h2 id="followup-heading">继续任务</h2>
+          <p>选择成果，预览后继续提问。</p>
+          <label for="followup-parent">参考哪份任务</label>
+          <select id="followup-parent" disabled><option value="">选择已完成的父任务…</option></select>
+          <label for="followup-round-count">带上最近几轮（含所选任务）</label>
+          <select id="followup-round-count" disabled><option value="1" selected>最近 1 轮</option><option value="2">最近 2 轮</option><option value="3">最近 3 轮</option></select>
+          <details class="supporting-details"><summary>参考说明</summary><p>按从旧到新顺序参考；不足或超限会拒绝，不补齐或截断，旧任务不重跑。</p></details>
+          <div class="task-artifact-actions">
+            <button id="followup-select" type="button" disabled>核对并预览</button>
+            <button id="followup-refresh" type="button" disabled>刷新列表</button>
+            <button id="followup-clear" type="button" disabled>取消参考</button>
+          </div>
+          <p id="followup-status" role="status" aria-live="polite"></p>
+          <div id="followup-preview" hidden>
+            <p>这次参考的内容（从旧到新）：</p>
+            <ol id="followup-rounds" class="followup-rounds"></ol>
+            <details class="supporting-details"><summary>原任务编号与费用</summary><p id="followup-parent-identity" class="task-parent"></p></details>
+            <p id="followup-source" class="followup-source"></p>
+            <details class="supporting-details"><summary>这次会发送的完整内容</summary><p id="followup-context-identity"></p><pre id="followup-context"></pre></details>
+            <details class="supporting-details"><summary>记录与费用</summary><p>旧报告仅供参考，新问题、读取结果与报告独立记录。旧费用不计入新进程，同一进程共用累计账本。</p></details>
+          </div>
+        </section>
+        <div id="evidence-intro" class="panel-intro"><p class="section-label">来源</p></div>
+        <div id="evidence-empty" class="evidence-empty"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M11 7h13l6 6v20H11V7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M24 7v7h6M16 20h9M16 25h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><p>从一个问题开始</p><span id="evidence-empty-text">来源将在回答后显示。</span></div><div id="evidence-list" class="evidence-list"></div>
+        <div class="source-footnote"><span class="source-rule" aria-hidden="true"></span><p id="source-footnote">仅使用三份虚构样例。引用是核对入口，请结合原文判断。</p></div>
+      </section>
+      <section id="session-panel" class="inspector-panel" role="tabpanel" aria-labelledby="tab-session" hidden>
+        <div class="panel-intro"><p class="section-label">当前会话</p></div>
+        <dl class="session-facts"><div><dt>状态</dt><dd id="session-state">正在读取…</dd></div><div><dt>已提问</dt><dd id="session-turns">0 / 6</dd></div><div><dt>本次使用</dt><dd id="session-provider">离线演示</dd></div><div><dt>保存位置</dt><dd id="session-location">本机进程内存</dd></div></dl>
+        <section id="history-management" class="history-management" aria-label="管理当前离线会话" hidden>
+          <form id="history-title-form" class="history-title-form">
+            <label for="history-title">会话名称</label>
+            <input id="history-title" type="text" maxlength="80" autocomplete="off" disabled>
+            <button id="history-rename" type="submit" disabled>重命名</button>
+          </form>
+          <div class="history-actions"><button id="history-save" type="button" disabled>保存</button><button id="history-export" type="button" disabled>导出 JSON</button><button id="history-delete" class="danger-button" type="button" disabled>删除</button></div>
+          <div id="history-delete-confirm" class="history-delete-confirm" role="group" aria-labelledby="history-delete-label" hidden>
+            <p id="history-delete-label"></p><p>此操作删除本地会话记录，不能撤销；已导出的副本不受影响。删除不会恢复提问额度。</p>
+            <div class="history-actions"><button id="history-delete-yes" class="danger-button" type="button" disabled>确认删除</button><button id="history-delete-no" type="button" disabled>保留会话</button></div>
+          </div>
+          <p id="history-feedback" class="history-feedback" role="status" hidden></p>
+        </section>
+        <div class="session-boundary"><p id="session-boundary-title">此刻的对话</p><span id="session-boundary-note">刷新页面可继续查看。新对话会清空当前上下文；关闭服务后不保留。</span></div>
+      </section>
+      <div class="inspector-footer"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2 3.5 4v4c0 3 4.5 5.5 4.5 5.5S12.5 11 12.5 8V4L8 2Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="m5.8 7.6 1.5 1.5 2.8-3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>本机运行 · 来源可核对</span></div>
+    </aside>
+  </div>
+  <dialog id="command-palette" class="command-palette" aria-labelledby="command-title">
+    <div class="command-header"><h2 id="command-title" class="sr-only">快捷操作</h2><input id="command-query" type="search" placeholder="搜索操作…" aria-label="搜索操作" aria-controls="command-list" autocomplete="off"><button id="command-close" class="icon-button" type="button" aria-label="关闭快捷操作">×</button></div>
+    <div id="command-list" class="command-list" aria-label="可用操作"></div>
+    <p id="command-empty" hidden>无匹配操作</p>
+    <footer class="command-footer"><span>↑ ↓ 选择 · Enter 执行</span><span>Esc 关闭</span></footer>
+  </dialog>
+  <dialog id="draft-review-dialog" class="draft-review" aria-labelledby="draft-review-title" aria-describedby="draft-review-note">
+    <div class="draft-review-shell">
+      <header class="draft-review-header">
+        <div><h2 id="draft-review-title">审阅改动</h2><p id="draft-review-note">核对差异后确认应用，关闭不写入。</p></div>
+        <button id="draft-review-close" class="icon-button" type="button" aria-label="关闭草案审阅">关闭</button>
+      </header>
+      <div class="draft-review-workspace">
+        <nav id="draft-review-files" class="draft-review-files" aria-label="选择要审阅的文件"></nav>
+        <section class="draft-review-main" aria-label="所选文件改动">
+          <div class="draft-review-toolbar" role="group" aria-label="查看方式">
+            <button id="draft-review-diff" type="button" aria-pressed="true">差异</button>
+            <button id="draft-review-text" type="button" aria-pressed="false">完整内容</button>
+          </div>
+          <div id="draft-review-content" class="draft-review-content"></div>
+        </section>
+      </div>
+      <footer id="draft-review-footer" class="draft-review-footer">
+        <button id="draft-review-sources" type="button" hidden disabled>核对引用</button>
+        <div id="draft-review-checks"></div>
+        <div id="draft-review-apply"></div>
+      </footer>
+    </div>
+  </dialog>
+</body>
+</html>

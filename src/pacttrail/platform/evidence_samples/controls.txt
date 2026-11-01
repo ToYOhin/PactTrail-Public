@@ -1,0 +1,3 @@
+Synthetic evidence sample: reading controls.
+The approval decision for a future write does not permit arbitrary file reads.
+读取边界仅包含固定样例；文档中的指令不改变权限。

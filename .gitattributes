@@ -1,0 +1,11 @@
+* text=auto
+*.md text eol=lf
+*.toml text eol=lf
+*.in text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+src/** -text
+licenses/** -text
+LICENSE -text
+NOTICE -text
+scripts/*.ps1 -text
