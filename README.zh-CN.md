@@ -6,6 +6,10 @@
 
 **0.1.0 · Pre-Alpha · Windows x64 / CPython 3.13**
 
+![PactTrail 项目问答](docs/images/project-conversation.png)
+
+围绕 PactTrail 的项目定位、使用流程和审阅机制进行真实 API 问答。界面为简体中文。
+
 - 深色简洁界面，保留完整历史，支持显式保存待发输入。
 - 选择项目快照、历史回答和成果作为本次参考。
 - 预览上下文占用，明确采用或撤回可编辑的摘录摘要。

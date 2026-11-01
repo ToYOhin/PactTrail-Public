@@ -6,6 +6,10 @@ A local agent workbench for conversations, source-backed reports, and file draft
 
 **0.1.0 · Pre-Alpha · Windows x64 / CPython 3.13**
 
+![PactTrail project Q&A](docs/images/project-conversation.png)
+
+A live API Q&A about PactTrail's purpose, workflow, and review-before-apply design. The interface is in Simplified Chinese.
+
 - A compact dark interface with persistent history and saved input.
 - Selected project snapshots, earlier answers, and artifacts as references.
 - Context preview with editable excerpt summaries you can adopt or withdraw.
