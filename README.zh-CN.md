@@ -1,19 +1,43 @@
 # PactTrail
 
-[English](README.md) · [下载](https://github.com/ToYOhin/PactTrail-Public/releases/tag/v0.1.0-prealpha.1) · [使用说明](docs/USAGE.zh-CN.md)
+把对话推进成有来源可回看、有改动可审阅的本地成果。
 
-运行在本机的 Agent 工作台：连续交流、结合来源生成报告，制作文件草案，审阅确认后再应用。
+[English](README.md) · [下载](https://github.com/ToYOhin/PactTrail-Public/releases/tag/v0.1.0-prealpha.1) · [使用说明](docs/USAGE.zh-CN.md)
 
 **0.1.0 · Pre-Alpha · Windows x64 / CPython 3.13**
 
 ![PactTrail 项目问答](docs/images/project-conversation.png)
 
-围绕 PactTrail 的项目定位、使用流程和审阅机制进行真实 API 问答。界面为简体中文。
+真实 API 项目问答，界面为简体中文。
 
-- 深色简洁界面，保留完整历史，支持显式保存待发输入。
-- 选择项目快照、历史回答和成果作为本次参考。
-- 预览上下文占用，明确采用或撤回可编辑的摘录摘要。
-- 回看来源，审阅草案完整正文与差异，确认后才写入文件。
+## 从提问到成果
+
+1. **准备问题**：直接提问，或明确选择项目快照、历史回答和成果作为参考；按需预览本次上下文。
+2. **生成成果**：得到回答、独立报告或文件草案，保留原文、旧历史和旧成果。
+3. **核对改动**：回看来源，查看草案全文与差异，需要写入文件时明确确认应用。
+
+## 关于项目
+
+<details>
+<summary>与普通聊天界面有什么不同？</summary>
+
+PactTrail 把参考材料、来源版本、对话和独立成果放在同一条工作流中，便于回看，也便于基于旧成果继续迭代。
+
+</details>
+
+<details>
+<summary>生成草案会直接修改项目文件吗？</summary>
+
+草案作为独立成果保存。查看完整正文与差异、明确确认后才写入；目标相对原快照发生变化时，应用会被拒绝。
+
+</details>
+
+<details>
+<summary>不连接模型也能体验吗？</summary>
+
+可以。默认的固定离线演示可体验界面和本地成果流程；真实交流需显式配置 DeepSeek 连接。离线体验时保持可选联网搜索关闭。
+
+</details>
 
 ## 安装与启动
 
@@ -43,9 +67,12 @@ New-Item -ItemType Directory -Force -Path $workspaceParent | Out-Null
 
 </details>
 
-## 当前范围
+<details>
+<summary>版本与使用范围</summary>
 
-本仓库用于项目展示，版本为 Pre-Alpha；干净 Windows 安装、跨平台和通用模型质量仍未验证。真实模型及可选联网搜索需要明确使用，可能产生服务商费用。不提供通用 Shell 或自主执行项目代码。
+本仓库用于项目展示，当前为 Pre-Alpha。干净 Windows 安装、跨平台和通用模型质量仍未验证。默认演示使用固定规则；真实 API 对话及可选联网搜索可能产生服务商费用。当前不提供通用 Shell 或自主执行项目代码。
+
+</details>
 
 ## 许可证
 

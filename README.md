@@ -1,19 +1,43 @@
 # PactTrail
 
-[简体中文](README.zh-CN.md) · [Download](https://github.com/ToYOhin/PactTrail-Public/releases/tag/v0.1.0-prealpha.1) · [User guide](docs/USAGE.md)
+A local agent workbench for turning conversations into traceable reports and reviewable file drafts.
 
-A local agent workbench for conversations, source-backed reports, and file drafts you can review before applying.
+[简体中文](README.zh-CN.md) · [Download](https://github.com/ToYOhin/PactTrail-Public/releases/tag/v0.1.0-prealpha.1) · [User guide](docs/USAGE.md)
 
 **0.1.0 · Pre-Alpha · Windows x64 / CPython 3.13**
 
 ![PactTrail project Q&A](docs/images/project-conversation.png)
 
-A live API Q&A about PactTrail's purpose, workflow, and review-before-apply design. The interface is in Simplified Chinese.
+A real API conversation about the project. The interface is currently in Simplified Chinese.
 
-- A compact dark interface with persistent history and saved input.
-- Selected project snapshots, earlier answers, and artifacts as references.
-- Context preview with editable excerpt summaries you can adopt or withdraw.
-- Source inspection and draft review, with confirmation before writing files.
+## How it works
+
+1. **Start a conversation.** Ask directly, or explicitly select project snapshots, earlier answers, and artifacts as references; preview the context when needed.
+2. **Choose the output.** Continue with an answer, save a report, or generate an independent file draft. Earlier history and artifacts remain available.
+3. **Review and decide.** Inspect sources and versions. For file changes, read the full text and diff, then explicitly confirm application.
+
+## Project Q&A
+
+<details>
+<summary>What makes PactTrail different from a plain chat UI?</summary>
+
+It connects conversation history and selected sources to saved reports and reviewable file drafts. Original text and artifact versions remain available for inspection.
+
+</details>
+
+<details>
+<summary>Does generating a draft change project files?</summary>
+
+Drafts are saved separately; writing files requires explicit confirmation after review. If a target has changed since its snapshot, application is refused.
+
+</details>
+
+<details>
+<summary>Can I try it without a model connection?</summary>
+
+Yes. The default offline mode demonstrates the workflow with fixed responses. Explicitly configure the supported DeepSeek connection for live answers; leave optional web search off to stay offline.
+
+</details>
 
 ## Install and start
 
@@ -43,9 +67,12 @@ Open the loopback address printed by the terminal. Startup sends no model reques
 
 </details>
 
-## Scope
+<details>
+<summary>Version notes</summary>
 
 This is a project showcase and Pre-Alpha preview. Clean Windows installation, cross-platform operation, and general model quality remain unverified. Live models and optional web search require explicit use and may incur provider charges. There is no arbitrary shell or autonomous project-code execution.
+
+</details>
 
 ## License
 
